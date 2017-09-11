@@ -6,6 +6,12 @@ export const API = {
 				'Accept': 'application/json',
 				'Content-Type': 'application/json',
 			}
-		})
+		}).then(res => {
+			return res.json();
+		}).then(json => {
+			return json;
+		}).catch(e => {
+			alert('something went wrong \n' + e);
+		});
 	}
 };

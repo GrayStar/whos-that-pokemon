@@ -7,7 +7,8 @@ export class Home extends Component {
 
 		this.state = {
 			listening: false,
-			correctAnswers: 0
+			correctAnswers: 0,
+			youSaid: ''
 		};
 
 		this.startingPokemon = 1;
@@ -15,6 +16,7 @@ export class Home extends Component {
 		this.alreadyChosenPokemonIds = [];
 
 		this.recognition = null;
+		this.utterance = null;
 	}
 
 	componentWillMount() {
@@ -22,6 +24,7 @@ export class Home extends Component {
 
 		this.recognition = new SpeechRecognition();
 		this.recognition.lang = 'en-US';
+		this.recognition.continuous = true;
 		this.recognition.interimResults = false;
 
 		this.recognition.addEventListener('start', this._handleRecognitionAudioStart.bind(this));
@@ -41,18 +44,22 @@ export class Home extends Component {
 
 	_handleRecognitionEnd () {
 		this.setState({ listening: false });
+
+		if (this.state.youSaid === this.state.pokemon.name) {
+			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
+			window.speechSynthesis.speak(utterance);
+		} else {
+			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }`);
+			window.speechSynthesis.speak(utterance);
+		}
 	}
 
 	_handleRecognitionResult (e) {
+		this.recognition.stop();
+
 		let last = e.results.length - 1;
 		let text = e.results[last][0].transcript;
-
-		this.setState({
-			conversationTopic: text
-		});
-
-		let utterance = new SpeechSynthesisUtterance(text);
-		window.speechSynthesis.speak(utterance);
+		this.setState({ youSaid: text });
 	}
 
 	_handleButtonClick () {
@@ -78,12 +85,8 @@ export class Home extends Component {
 
 	_getPokemonInfo (id) {
 		API.getPokemon(id).then(res => {
-			res.json().then(json => {
-				console.log(json);
-				this.setState({ pokemon: json }, () => {
-					this._startRound();
-				});
-			});
+			console.log(res);
+			this.setState({ pokemon: res }, this._startRound);
 		}).catch(e => {
 			alert("Couldn't get data for the pocket manzzzz \n" + e);
 		});
@@ -97,6 +100,7 @@ export class Home extends Component {
 
 	_startGuessTimer () {
 		this.recognition.start();
+		setTimeout(this.recognition.stop, 5000);
 	}
 
 	get _listeningIndicator () {
@@ -120,7 +124,8 @@ export class Home extends Component {
 			<article className="home">
 				{ this._pokemonSprite }
 				{ this._listeningIndicator }
-				<button onClick={ this._handleButtonClick.bind(this) }>Choose Another</button>
+				<p>{ this.state.youSaid }</p>
+				<button onClick={ this._handleButtonClick.bind(this) }>Start</button>
 				<p>{ this.state.correctAnswers }</p>
 			</article>
 		);
