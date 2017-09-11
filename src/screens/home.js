@@ -79,11 +79,8 @@ export class Home extends Component {
 
 	_getPokemonInfo (id) {
 		API.getPokemon(id).then(res => {
-			res.json().then(json => {
-				console.log(json);
-				this.setState({pokemon: json});
-			});
-
+			console.log(res);
+			this.setState({pokemon: res});
 		}).catch(e => {
 			alert("Couldn't get data for the pocket manzzzz \n" + e);
 		});
