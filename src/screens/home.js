@@ -6,6 +6,7 @@ export class Home extends Component {
 		super();
 
 		this.state = {
+			playing: false,
 			listening: false,
 			correctAnswers: 0,
 			youSaid: ''
@@ -48,24 +49,34 @@ export class Home extends Component {
 		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
 			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
 
-			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
-			utterance.addEventListener('end', this._chosePokemon.bind(this));
-			window.speechSynthesis.speak(utterance);
+			let correctAnswerUtterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
+			correctAnswerUtterance.addEventListener('end', () =>  {
+				this._chosePokemon();
+			});
+			window.speechSynthesis.speak(correctAnswerUtterance);
 		} else {
 			this._endGame();
 		}
 	}
 
 	_endGame () {
-		let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }`);
-		utterance.addEventListener('end', () => {
-			this.setState({
-				youSaid: '',
-				listening: false,
-				correctAnswers: 0
-			});
+		let endGameUtterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`);
+		endGameUtterance.addEventListener('end', () => {
+			console.log('endGameUtterance');
+			this._resetGame();
 		});
-		window.speechSynthesis.speak(utterance);
+		window.speechSynthesis.speak(endGameUtterance);
+	}
+
+	_resetGame () {
+		this.setState({
+			youSaid: '',
+			playing: false,
+			listening: false,
+			correctAnswers: 0,
+			pokemon: null
+		});
+		this.alreadyChosenPokemonIds = [];
 	}
 
 	_handleRecognitionResult (e) {
@@ -76,11 +87,14 @@ export class Home extends Component {
 		this.setState({ youSaid: text });
 	}
 
-	_handleButtonClick () {
+	_handleStartButtonClick () {
 		this._chosePokemon();
+		this.setState({ playing: true });
 	}
 
 	_chosePokemon () {
+		console.log('choose pokemon');
+
 		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
 
 		if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) {
@@ -101,7 +115,7 @@ export class Home extends Component {
 			console.log(res);
 			this.setState({ pokemon: res }, this._startRound);
 		}).catch(e => {
-			alert("Couldn't get data for the pocket manzzzz \n" + e);
+			alert("Error: \n" + e);
 		});
 	}
 
@@ -132,13 +146,21 @@ export class Home extends Component {
 		}
 	}
 
+	get _startButton () {
+		if (this.state.playing) {
+			return null;
+		} else {
+			return <button onClick={ this._handleStartButtonClick.bind(this) }>Start</button>;
+		}
+	}
+
 	render () {
 		return(
 			<article className="home">
 				{ this._pokemonSprite }
 				{ this._listeningIndicator }
 				<p>{ this.state.youSaid }</p>
-				<button onClick={ this._handleButtonClick.bind(this) }>Start</button>
+				{ this._startButton }
 				<p>{ this.state.correctAnswers }</p>
 			</article>
 		);
