@@ -45,7 +45,7 @@ export class Home extends Component {
 	_handleRecognitionEnd () {
 		this.setState({ listening: false });
 
-		if (this.state.youSaid === this.state.pokemon.name) {
+		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
 			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
 			window.speechSynthesis.speak(utterance);
 		} else {
@@ -100,7 +100,7 @@ export class Home extends Component {
 
 	_startGuessTimer () {
 		this.recognition.start();
-		setTimeout(this.recognition.stop, 5000);
+		setTimeout(() => {this.recognition.stop()}, 5000);
 	}
 
 	get _listeningIndicator () {
