@@ -56,7 +56,6 @@ export class Home extends Component {
 	}
 
 	_handleButtonClick () {
-		//this.recognition.start();
 		this._chosePokemon();
 	}
 
@@ -81,12 +80,23 @@ export class Home extends Component {
 		API.getPokemon(id).then(res => {
 			res.json().then(json => {
 				console.log(json);
-				this.setState({pokemon: json});
+				this.setState({ pokemon: json }, () => {
+					this._startRound();
+				});
 			});
-
 		}).catch(e => {
 			alert("Couldn't get data for the pocket manzzzz \n" + e);
 		});
+	}
+
+	_startRound () {
+		let utterance = new SpeechSynthesisUtterance('Who is that pokémon?');
+		utterance.addEventListener('end', this._startGuessTimer.bind(this));
+		window.speechSynthesis.speak(utterance);
+	}
+
+	_startGuessTimer () {
+		this.recognition.start();
 	}
 
 	get _listeningIndicator () {
@@ -97,9 +107,18 @@ export class Home extends Component {
 		}
 	}
 
+	get _pokemonSprite () {
+		if (this.state.pokemon) {
+			return <img src={ this.state.pokemon.sprites.front_default } alt="pokemon"/>;
+		} else {
+			return null;
+		}
+	}
+
 	render () {
 		return(
 			<article className="home">
+				{ this._pokemonSprite }
 				{ this._listeningIndicator }
 				<button onClick={ this._handleButtonClick.bind(this) }>Choose Another</button>
 				<p>{ this.state.correctAnswers }</p>
