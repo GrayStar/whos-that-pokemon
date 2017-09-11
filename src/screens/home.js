@@ -5,9 +5,11 @@ export class Home extends Component {
 		super();
 
 		this.state = {
-			listening: false,
-			conversationTopic: null
+			listening: false
 		};
+
+		this.startingPokemon = 1;
+		this.endingPokemon = 151;
 
 		this.recognition = null;
 	}
@@ -22,6 +24,14 @@ export class Home extends Component {
 		this.recognition.addEventListener('start', this._handleRecognitionAudioStart.bind(this));
 		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
+
+		console.log( this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon) );
+	}
+
+	_getRandomIntInclusive (min, max) {
+		min = Math.ceil(min);
+		max = Math.floor(max);
+		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
 	_handleRecognitionAudioStart () {
@@ -48,14 +58,6 @@ export class Home extends Component {
 		this.recognition.start();
 	}
 
-	get _conversationTopic () {
-		if (this.state.conversationTopic) {
-			return <h2>{ this.state.conversationTopic }</h2>;
-		} else {
-			return <h2>Please set a topic.</h2>;
-		}
-	}
-
 	get _listeningIndicator () {
 		if (this.state.listening) {
 			return <p>Listening...</p>;
@@ -64,20 +66,10 @@ export class Home extends Component {
 		}
 	}
 
-	get _captureVoiceButton () {
-		if (this.state.conversationTopic) {
-			return null;
-		} else {
-			return <button onClick={ this._handleButtonClick.bind(this) }>Say Your Topic</button>;
-		}
-	}
-
 	render () {
 		return(
 			<article className="home">
-				{ this._conversationTopic }
 				{ this._listeningIndicator }
-				{ this._captureVoiceButton }
 			</article>
 		);
 	}
