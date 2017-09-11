@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { API } from '../api';
 
 export class Home extends Component {
 	constructor () {
@@ -68,7 +69,20 @@ export class Home extends Component {
 		} else {
 			this.alreadyChosenPokemonIds.push(randomPokemonId);
 			console.log(this.alreadyChosenPokemonIds);
+			this._getPokemonInfo(randomPokemonId);
 		}
+	}
+
+	_getPokemonInfo (id) {
+		API.getPokemon(id).then(res => {
+			res.json().then(json => {
+				console.log(json);
+				this.setState({pokemon: json});
+			});
+
+		}).catch(e => {
+			alert("Couldn't get data for the pocket manzzzz \n" + e);
+		});
 	}
 
 	get _listeningIndicator () {
