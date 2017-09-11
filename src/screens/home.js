@@ -20,14 +20,7 @@ export class Home extends Component {
 		this.recognition.interimResults = false;
 
 
-		this.recognition.addEventListener('result', (e) => {
-			let last = e.results.length - 1;
-			let text = e.results[last][0].transcript;
-
-			this.setState({
-				conversationTopic: text
-			});
-		});
+		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
 
 		this.recognition.onaudiostart = () => {
 			this.setState({ listening: true });
@@ -37,27 +30,32 @@ export class Home extends Component {
 		}
 	}
 
+	_handleRecognitionResult (e) {
+		let last = e.results.length - 1;
+		let text = e.results[last][0].transcript;
+
+		this.setState({
+			conversationTopic: text
+		});
+	}
+
 	_handleButtonClick () {
 		this.recognition.start();
 	}
 
-	get _listeningIndicator () {
-		if (this.state.listening) {
-			return (
-				<p>Listening...</p>
-			);
+	get _conversationTopic () {
+		if (this.state.conversationTopic) {
+			return <h2>{ this.state.conversationTopic }</h2>;
 		} else {
-			return null;
+			return <h2>Please set a topic.</h2>;
 		}
 	}
 
-	get _conversationTopic () {
-		if (this.state.conversationTopic) {
-			return (
-				<h2>{ this.state.conversationTopic }</h2>
-			);
+	get _listeningIndicator () {
+		if (this.state.listening) {
+			return <p>Listening...</p>;
 		} else {
-			return <h2>Please set a topic.</h2>;
+			return null;
 		}
 	}
 
