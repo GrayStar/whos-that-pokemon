@@ -19,15 +19,17 @@ export class Home extends Component {
 		this.recognition.lang = 'en-US';
 		this.recognition.interimResults = false;
 
-
+		this.recognition.addEventListener('audiostart', this._handleRecognitionAudioStart.bind(this));
+		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
+	}
 
-		this.recognition.onaudiostart = () => {
-			this.setState({ listening: true });
-		}
-		this.recognition.onend = () => {
-			this.setState({ listening: false });
-		}
+	_handleRecognitionAudioStart () {
+		this.setState({ listening: true });
+	}
+
+	_handleRecognitionEnd () {
+		this.setState({ listening: false });
 	}
 
 	_handleRecognitionResult (e) {
