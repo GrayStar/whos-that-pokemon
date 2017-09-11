@@ -10,6 +10,7 @@ export class Home extends Component {
 
 		this.startingPokemon = 1;
 		this.endingPokemon = 151;
+		this.alreadyChosenPokemonIds = [];
 
 		this.recognition = null;
 	}
@@ -25,7 +26,7 @@ export class Home extends Component {
 		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
 
-		console.log( this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon) );
+
 	}
 
 	_getRandomIntInclusive (min, max) {
@@ -55,7 +56,19 @@ export class Home extends Component {
 	}
 
 	_handleButtonClick () {
-		this.recognition.start();
+		//this.recognition.start();
+		this._chosePokemon();
+	}
+
+	_chosePokemon () {
+		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
+
+		if (this.alreadyChosenPokemonIds.includes(randomPokemonId)) {
+			this._chosePokemon();
+		} else {
+			this.alreadyChosenPokemonIds.push(randomPokemonId);
+			console.log(this.alreadyChosenPokemonIds);
+		}
 	}
 
 	get _listeningIndicator () {
@@ -70,6 +83,7 @@ export class Home extends Component {
 		return(
 			<article className="home">
 				{ this._listeningIndicator }
+				<button onClick={ this._handleButtonClick.bind(this) }>Choose Another</button>
 			</article>
 		);
 	}
