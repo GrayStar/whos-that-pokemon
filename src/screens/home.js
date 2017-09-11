@@ -46,12 +46,26 @@ export class Home extends Component {
 		this.setState({ listening: false });
 
 		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
+			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
+
 			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
+			utterance.addEventListener('end', this._chosePokemon.bind(this));
 			window.speechSynthesis.speak(utterance);
 		} else {
-			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }`);
-			window.speechSynthesis.speak(utterance);
+			this._endGame();
 		}
+	}
+
+	_endGame () {
+		let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }`);
+		utterance.addEventListener('end', () => {
+			this.setState({
+				youSaid: '',
+				listening: false,
+				correctAnswers: 0
+			});
+		});
+		window.speechSynthesis.speak(utterance);
 	}
 
 	_handleRecognitionResult (e) {
@@ -78,7 +92,6 @@ export class Home extends Component {
 		} else {
 			this.alreadyChosenPokemonIds.push(randomPokemonId);
 			this._getPokemonInfo(randomPokemonId);
-			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
 			return console.log(this.alreadyChosenPokemonIds);
 		}
 	}
