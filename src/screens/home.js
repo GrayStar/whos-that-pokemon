@@ -5,7 +5,8 @@ export class Home extends Component {
 		super();
 
 		this.state = {
-			listening: false
+			listening: false,
+			correctAnswers: 0
 		};
 
 		this.startingPokemon = 1;
@@ -25,8 +26,6 @@ export class Home extends Component {
 		this.recognition.addEventListener('start', this._handleRecognitionAudioStart.bind(this));
 		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
-
-
 	}
 
 	_getRandomIntInclusive (min, max) {
@@ -71,6 +70,9 @@ export class Home extends Component {
 			return this._chosePokemon();
 		} else {
 			this.alreadyChosenPokemonIds.push(randomPokemonId);
+
+			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
+
 			return console.log(this.alreadyChosenPokemonIds);
 		}
 	}
@@ -88,6 +90,7 @@ export class Home extends Component {
 			<article className="home">
 				{ this._listeningIndicator }
 				<button onClick={ this._handleButtonClick.bind(this) }>Choose Another</button>
+				<p>{ this.state.correctAnswers }</p>
 			</article>
 		);
 	}
