@@ -4,12 +4,12 @@ export class Home extends Component {
 	constructor () {
 		super();
 
-		this.recognition = null;
-
 		this.state = {
 			listening: false,
 			conversationTopic: null
 		};
+
+		this.recognition = null;
 	}
 
 	componentWillMount() {
@@ -19,7 +19,7 @@ export class Home extends Component {
 		this.recognition.lang = 'en-US';
 		this.recognition.interimResults = false;
 
-		this.recognition.addEventListener('audiostart', this._handleRecognitionAudioStart.bind(this));
+		this.recognition.addEventListener('start', this._handleRecognitionAudioStart.bind(this));
 		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
 	}
@@ -39,6 +39,9 @@ export class Home extends Component {
 		this.setState({
 			conversationTopic: text
 		});
+
+		let utterance = new SpeechSynthesisUtterance(text);
+		window.speechSynthesis.speak(utterance);
 	}
 
 	_handleButtonClick () {
