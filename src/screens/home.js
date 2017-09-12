@@ -5,13 +5,23 @@ export class Home extends Component {
 	constructor () {
 		super();
 
+		this.GAME_STATES = {
+			LAUNCH: 'LAUNCH',
+			PLAY: 'PLAY',
+			WIN: 'WIN',
+			LOSE: 'LOSE'
+		};
+
 		this.state = {
+			gameState: this.GAME_STATES.LAUNCH,
 			loading: false,
 			playing: false,
 			listening: false,
 			correctAnswers: 0,
 			youSaid: ''
 		};
+
+
 
 		this.startingPokemon = 1;
 		this.endingPokemon = 151;
@@ -49,10 +59,12 @@ export class Home extends Component {
 
 		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
 			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
-
 			this._say(`You answered: ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
 		} else {
-			this._say(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`, () => { this._resetGame() });
+			this.setState({gameState: this.GAME_STATES.LOSE});
+			this._say(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`, () => {
+				this._resetGame();
+			});
 		}
 	}
 
@@ -62,7 +74,7 @@ export class Home extends Component {
 			playing: false,
 			listening: false,
 			correctAnswers: 0,
-			pokemon: null
+			pokemon: null,
 		});
 		this.alreadyChosenPokemonIds = [];
 	}
@@ -77,7 +89,7 @@ export class Home extends Component {
 
 	_handleStartButtonClick () {
 		this._chosePokemon();
-		this.setState({ playing: true });
+		this.setState({ playing: true, gameState: this.GAME_STATES.PLAY});
 	}
 
 	_say (message, callback) {
@@ -93,6 +105,7 @@ export class Home extends Component {
 		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
 
 		if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) {
+			this.setState({gameState: this.GAME_STATES.WIN});
 			return console.log('you got them all!');
 		}
 
@@ -153,24 +166,65 @@ export class Home extends Component {
 		}
 	}
 
-	get _startButton () {
-		if (this.state.playing) {
-			return null;
-		} else {
-			return <button onClick={ this._handleStartButtonClick.bind(this) }>Start</button>;
-		}
+	get _gameStartView () {
+		return (
+			<div className="message-container">
+				<h2>Who is that pokemon.</h2>
+				<p>Click the Button to play.</p>
+				<p>Guess all 151 without fail to achieve perfect victory. We will settle for nothing less.</p>
+				<button onClick={ this._handleStartButtonClick.bind(this) }>Start</button>
+			</div>
+		);
 	}
 
-	render () {
-		return(
+	get _gameView () {
+		return (
 			<article className="home">
 				{ this._pokemonSprite }
 				{ this._loadingIndicator }
 				{ this._listeningIndicator }
 				<p>{ this.state.youSaid }</p>
-				{ this._startButton }
 				<p>{ this.state.correctAnswers }</p>
 			</article>
+		)
+	}
+
+	get _gameWinView () {
+		return (
+			<div className="message-container">
+				<h2>Congratulation. You guessed all of the pokemon.</h2>
+				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
+			</div>
 		);
 	}
+
+	get _gameLossView () {
+		return (
+			<div className="message-container">
+				<h2>Game Over. You Lose. Loser.</h2>
+				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
+			</div>
+		);
+	}
+
+	get _gameState () {
+		switch (this.state.gameState) {
+			case this.GAME_STATES.LAUNCH:
+				return this._gameStartView;
+			case this.GAME_STATES.PLAY:
+				return this._gameView;
+			case this.GAME_STATES.WIN:
+				return this._gameWinView;
+			case this.GAME_STATES.LOSE:
+				return this._gameLossView;
+			default:
+				return this._gameStartView;
+		}
+	}
+
+	render () {
+		return(
+			<div>{ this._gameState }</div>
+		);
+	};
 }
