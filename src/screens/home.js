@@ -21,8 +21,6 @@ export class Home extends Component {
 			youSaid: ''
 		};
 
-
-
 		this.startingPokemon = 1;
 		this.endingPokemon = 151;
 		this.alreadyChosenPokemonIds = [];
@@ -59,7 +57,7 @@ export class Home extends Component {
 
 		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
 			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
-			this._say(`You answered: ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
+			this._say(`It's ${ this.state.pokemon.name }! You answered ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
 		} else {
 			this.setState({gameState: this.GAME_STATES.LOSE});
 			this._say(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`, () => {
@@ -102,6 +100,7 @@ export class Home extends Component {
 	}
 
 	_chosePokemon () {
+		this.setState({ youSaid: '' });
 		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
 
 		if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) {
@@ -134,20 +133,12 @@ export class Home extends Component {
 	}
 
 	_startRound () {
-		this._say('Who is that pokémon?', () => { this._startGuessTimer() });
+		this._say("Who's that pokémon?", () => { this._startGuessTimer() });
 	}
 
 	_startGuessTimer () {
 		this.recognition.start();
 		setTimeout(() => {this.recognition.stop()}, 5000);
-	}
-
-	get _loadingIndicator () {
-		if (this.state.loading) {
-			return <p>Searching tall grass pokémon...</p>;
-		} else {
-			return null;
-		}
 	}
 
 	get _listeningIndicator () {
@@ -178,15 +169,23 @@ export class Home extends Component {
 	}
 
 	get _gameView () {
-		return (
-			<article className="home">
-				{ this._pokemonSprite }
-				{ this._loadingIndicator }
-				{ this._listeningIndicator }
-				<p>{ this.state.youSaid }</p>
-				<p>{ this.state.correctAnswers }</p>
-			</article>
-		)
+		if (this.state.loading) {
+			return (
+				<article className="home">
+					<p>Searching tall grass for pokémon...</p>
+					<p>Current Streak: { this.state.correctAnswers }</p>
+				</article>
+			);
+		} else {
+			return (
+				<article className="home">
+					{ this._pokemonSprite }
+					{ this._listeningIndicator }
+					<p>{ this.state.youSaid }</p>
+					<p>Current Streak: { this.state.correctAnswers }</p>
+				</article>
+			);
+		}
 	}
 
 	get _gameWinView () {
