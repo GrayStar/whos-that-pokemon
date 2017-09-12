@@ -5,11 +5,21 @@ export class Home extends Component {
 	constructor () {
 		super();
 
+		this.GAME_STATES = {
+			LAUNCH: 'LAUNCH',
+			PLAY: 'PLAY',
+			WIN: 'WIN',
+			LOSE: 'LOSE'
+		};
+
 		this.state = {
+			gameState: this.GAME_STATES.LAUNCH,
 			listening: false,
 			correctAnswers: 0,
 			youSaid: ''
 		};
+
+
 
 		this.startingPokemon = 1;
 		this.endingPokemon = 151;
@@ -48,6 +58,7 @@ export class Home extends Component {
 		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
 			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
 			window.speechSynthesis.speak(utterance);
+			this._chosePokemon();
 		} else {
 			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }`);
 			window.speechSynthesis.speak(utterance);
@@ -119,15 +130,66 @@ export class Home extends Component {
 		}
 	}
 
-	render () {
-		return(
+
+	get _gameStartView () {
+		return (
+			<div className="message-container">
+				<h2>Who is that pokemon.</h2>
+				<p>Click the Button to play.</p>
+				<p>Guess all 151 without fail to achieve perfect victory. We will settle for nothing less.</p>
+				<button onClick={ this._handleButtonClick.bind(this) }>Start</button>
+			</div>
+		);
+	}
+
+	get _gameView () {
+		return (
 			<article className="home">
 				{ this._pokemonSprite }
 				{ this._listeningIndicator }
 				<p>{ this.state.youSaid }</p>
-				<button onClick={ this._handleButtonClick.bind(this) }>Start</button>
 				<p>{ this.state.correctAnswers }</p>
 			</article>
 		);
 	}
+
+	get _gameWinView () {
+		return (
+			<div className="message-container">
+				<h2>Congratulation. You guessed all of the pokemon.</h2>
+				<button onClick={ this._handleButtonClick.bind(this) }>Play Again</button>
+			</div>
+		);
+	}
+
+
+	get _gameLossView () {
+		return (
+			<div className="message-container">
+				<h2>Game Over. You Lose. Loser.</h2>
+				<button onClick={ this._handleButtonClick.bind(this) }>Play Again</button>
+			</div>
+		);
+	}
+
+	get _gameState () {
+		switch (this.state.gameState) {
+			case this.GAME_STATES.LAUNCH:
+				return this._gameStartView;
+			case this.GAME_STATES.PLAY:
+				return this._gameView;
+			case this.GAME_STATES.WIN:
+				return this._gameWinView;
+			case this.GAME_STATES.LOSE:
+				return this._gameLossView;
+			default:
+				return this._gameStartView;
+		}
+	}
+
+	render () {
+		return(
+			<div>{ this._gameState }</div>
+		);
+	};
 }
