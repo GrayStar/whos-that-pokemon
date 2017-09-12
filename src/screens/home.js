@@ -49,23 +49,10 @@ export class Home extends Component {
 		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
 			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
 
-			let correctAnswerUtterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
-			correctAnswerUtterance.addEventListener('end', () =>  {
-				this._chosePokemon();
-			});
-			window.speechSynthesis.speak(correctAnswerUtterance);
+			this._say(`You answered: ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
 		} else {
-			this._endGame();
+			this._say(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`, () => { this._resetGame() });
 		}
-	}
-
-	_endGame () {
-		let endGameUtterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`);
-		endGameUtterance.addEventListener('end', () => {
-			console.log('endGameUtterance');
-			this._resetGame();
-		});
-		window.speechSynthesis.speak(endGameUtterance);
 	}
 
 	_resetGame () {
@@ -90,6 +77,15 @@ export class Home extends Component {
 	_handleStartButtonClick () {
 		this._chosePokemon();
 		this.setState({ playing: true });
+	}
+
+	_say (message, callback) {
+		this.utterance = null;
+		this.utterance = new SpeechSynthesisUtterance(message);
+
+		if (callback) this.utterance.addEventListener('end', () =>  { callback(); });
+
+		window.speechSynthesis.speak(this.utterance);
 	}
 
 	_chosePokemon () {
@@ -120,9 +116,7 @@ export class Home extends Component {
 	}
 
 	_startRound () {
-		let utterance = new SpeechSynthesisUtterance('Who is that pokémon?');
-		utterance.addEventListener('end', this._startGuessTimer.bind(this));
-		window.speechSynthesis.speak(utterance);
+		this._say('Who is that pokémon?', () => { this._startGuessTimer() });
 	}
 
 	_startGuessTimer () {
