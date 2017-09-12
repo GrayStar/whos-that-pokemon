@@ -6,6 +6,7 @@ export class Home extends Component {
 		super();
 
 		this.state = {
+			loading: false,
 			playing: false,
 			listening: false,
 			correctAnswers: 0,
@@ -107,10 +108,16 @@ export class Home extends Component {
 	}
 
 	_getPokemonInfo (id) {
+		this.setState({ loading: true });
+
 		API.getPokemon(id).then(res => {
 			console.log(res);
-			this.setState({ pokemon: res }, this._startRound);
+			this.setState({
+				pokemon: res,
+				loading: false
+			}, this._startRound);
 		}).catch(e => {
+			this.setState({ loading: false });
 			alert("Error: \n" + e);
 		});
 	}
@@ -122,6 +129,14 @@ export class Home extends Component {
 	_startGuessTimer () {
 		this.recognition.start();
 		setTimeout(() => {this.recognition.stop()}, 5000);
+	}
+
+	get _loadingIndicator () {
+		if (this.state.loading) {
+			return <p>Searching tall grass pokémon...</p>;
+		} else {
+			return null;
+		}
 	}
 
 	get _listeningIndicator () {
@@ -152,6 +167,7 @@ export class Home extends Component {
 		return(
 			<article className="home">
 				{ this._pokemonSprite }
+				{ this._loadingIndicator }
 				{ this._listeningIndicator }
 				<p>{ this.state.youSaid }</p>
 				{ this._startButton }
