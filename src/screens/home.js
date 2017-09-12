@@ -14,6 +14,8 @@ export class Home extends Component {
 
 		this.state = {
 			gameState: this.GAME_STATES.LAUNCH,
+			loading: false,
+			playing: false,
 			listening: false,
 			correctAnswers: 0,
 			youSaid: ''
@@ -56,13 +58,25 @@ export class Home extends Component {
 		this.setState({ listening: false });
 
 		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
-			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Correct.`);
-			window.speechSynthesis.speak(utterance);
-			this._chosePokemon();
+			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
+			this._say(`You answered: ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
 		} else {
-			let utterance = new SpeechSynthesisUtterance(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }`);
-			window.speechSynthesis.speak(utterance);
+			this.setState({gameState: this.GAME_STATES.LOSE});
+			this._say(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`, () => {
+				this._resetGame();
+			});
 		}
+	}
+
+	_resetGame () {
+		this.setState({
+			youSaid: '',
+			playing: false,
+			listening: false,
+			correctAnswers: 0,
+			pokemon: null,
+		});
+		this.alreadyChosenPokemonIds = [];
 	}
 
 	_handleRecognitionResult (e) {
@@ -73,14 +87,27 @@ export class Home extends Component {
 		this.setState({ youSaid: text });
 	}
 
-	_handleButtonClick () {
+	_handleStartButtonClick () {
 		this._chosePokemon();
+		this.setState({ playing: true, gameState: this.GAME_STATES.PLAY});
+	}
+
+	_say (message, callback) {
+		this.utterance = null;
+		this.utterance = new SpeechSynthesisUtterance(message);
+
+		if (callback) this.utterance.addEventListener('end', () =>  { callback(); });
+
+		window.speechSynthesis.speak(this.utterance);
 	}
 
 	_chosePokemon () {
+		console.log('choose pokemon');
+
 		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
 
 		if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) {
+			this.setState({gameState: this.GAME_STATES.WIN});
 			return console.log('you got them all!');
 		}
 
@@ -89,29 +116,40 @@ export class Home extends Component {
 		} else {
 			this.alreadyChosenPokemonIds.push(randomPokemonId);
 			this._getPokemonInfo(randomPokemonId);
-			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
 			return console.log(this.alreadyChosenPokemonIds);
 		}
 	}
 
 	_getPokemonInfo (id) {
+		this.setState({ loading: true });
+
 		API.getPokemon(id).then(res => {
 			console.log(res);
-			this.setState({ pokemon: res }, this._startRound);
+			this.setState({
+				pokemon: res,
+				loading: false
+			}, this._startRound);
 		}).catch(e => {
-			alert("Couldn't get data for the pocket manzzzz \n" + e);
+			this.setState({ loading: false });
+			alert("Error: \n" + e);
 		});
 	}
 
 	_startRound () {
-		let utterance = new SpeechSynthesisUtterance('Who is that pokémon?');
-		utterance.addEventListener('end', this._startGuessTimer.bind(this));
-		window.speechSynthesis.speak(utterance);
+		this._say('Who is that pokémon?', () => { this._startGuessTimer() });
 	}
 
 	_startGuessTimer () {
 		this.recognition.start();
 		setTimeout(() => {this.recognition.stop()}, 5000);
+	}
+
+	get _loadingIndicator () {
+		if (this.state.loading) {
+			return <p>Searching tall grass pokémon...</p>;
+		} else {
+			return null;
+		}
 	}
 
 	get _listeningIndicator () {
@@ -130,14 +168,13 @@ export class Home extends Component {
 		}
 	}
 
-
 	get _gameStartView () {
 		return (
 			<div className="message-container">
 				<h2>Who is that pokemon.</h2>
 				<p>Click the Button to play.</p>
 				<p>Guess all 151 without fail to achieve perfect victory. We will settle for nothing less.</p>
-				<button onClick={ this._handleButtonClick.bind(this) }>Start</button>
+				<button onClick={ this._handleStartButtonClick.bind(this) }>Start</button>
 			</div>
 		);
 	}
@@ -146,28 +183,28 @@ export class Home extends Component {
 		return (
 			<article className="home">
 				{ this._pokemonSprite }
+				{ this._loadingIndicator }
 				{ this._listeningIndicator }
 				<p>{ this.state.youSaid }</p>
 				<p>{ this.state.correctAnswers }</p>
 			</article>
-		);
+		)
 	}
 
 	get _gameWinView () {
 		return (
 			<div className="message-container">
 				<h2>Congratulation. You guessed all of the pokemon.</h2>
-				<button onClick={ this._handleButtonClick.bind(this) }>Play Again</button>
+				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
 			</div>
 		);
 	}
-
 
 	get _gameLossView () {
 		return (
 			<div className="message-container">
 				<h2>Game Over. You Lose. Loser.</h2>
-				<button onClick={ this._handleButtonClick.bind(this) }>Play Again</button>
+				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
 			</div>
 		);
 	}
