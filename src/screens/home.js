@@ -90,8 +90,6 @@ export class Home extends Component {
 	}
 
 	_chosePokemon () {
-		console.log('choose pokemon');
-
 		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
 
 		if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) {
