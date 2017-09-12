@@ -181,7 +181,7 @@ export class Home extends Component {
 				<article className="home">
 					{ this._pokemonSprite }
 					{ this._listeningIndicator }
-					<p>{ this.state.youSaid }</p>
+					<p>You Said: { this.state.youSaid }</p>
 					<p>Current Streak: { this.state.correctAnswers }</p>
 				</article>
 			);
