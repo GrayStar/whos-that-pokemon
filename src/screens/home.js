@@ -32,6 +32,10 @@ export class Home extends Component {
 	}
 
 	componentWillMount() {
+		this._registerSpeechRecognition();
+	}
+
+	_registerSpeechRecognition () {
 		const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 		this.recognition = new SpeechRecognition();
@@ -39,7 +43,7 @@ export class Home extends Component {
 		this.recognition.continuous = true;
 		this.recognition.interimResults = false;
 
-		this.recognition.addEventListener('start', this._handleRecognitionAudioStart.bind(this));
+		this.recognition.addEventListener('start', this._handleRecognitionStart.bind(this));
 		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
 	}
@@ -50,7 +54,7 @@ export class Home extends Component {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
-	_handleRecognitionAudioStart () {
+	_handleRecognitionStart () {
 		this.setState({ listening: true });
 	}
 
@@ -63,6 +67,14 @@ export class Home extends Component {
 			this.setState({gameState: this.GAME_STATES.LOSE});
 			this._say(`You said: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`);
 		}
+	}
+
+	_handleRecognitionResult (e) {
+		this.recognition.stop();
+
+		let last = e.results.length - 1;
+		let text = e.results[last][0].transcript;
+		this.setState({ youSaid: text });
 	}
 
 	_checkAnswer () {
@@ -90,14 +102,6 @@ export class Home extends Component {
 			pokemon: null,
 		});
 		this.alreadyChosenPokemonIds = [];
-	}
-
-	_handleRecognitionResult (e) {
-		this.recognition.stop();
-
-		let last = e.results.length - 1;
-		let text = e.results[last][0].transcript;
-		this.setState({ youSaid: text });
 	}
 
 	_handleStartButtonClick () {
