@@ -58,12 +58,10 @@ export class Home extends Component {
 		this.setState({ listening: false });
 		if (this._checkAnswer()) {
 			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
-			this._say(`It's ${ this.state.pokemon.name }! You answered ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
+			this._say(`It's ${ this.state.pokemon.name }! You said ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
 		} else {
 			this.setState({gameState: this.GAME_STATES.LOSE});
-			this._say(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`, () => {
-				this._resetGame();
-			});
+			this._say(`You said: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`);
 		}
 	}
 
@@ -82,7 +80,6 @@ export class Home extends Component {
 		}
 		return false;
 	}
-
 
 	_resetGame () {
 		this.setState({
@@ -104,6 +101,7 @@ export class Home extends Component {
 	}
 
 	_handleStartButtonClick () {
+		this._resetGame();
 		this._chosePokemon();
 		this.setState({ playing: true, gameState: this.GAME_STATES.PLAY});
 	}
@@ -219,6 +217,7 @@ export class Home extends Component {
 		return (
 			<div className="message-container">
 				<h2>Game Over. You Lose. Loser.</h2>
+				<p>Current Streak: { this.state.correctAnswers }</p>
 				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
 			</div>
 		);
