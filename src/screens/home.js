@@ -124,8 +124,7 @@ export class Home extends Component {
 		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
 
 		if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) {
-			this.setState({gameState: this.GAME_STATES.WIN});
-			return console.log('you got them all!');
+			return this.setState({gameState: this.GAME_STATES.WIN});
 		}
 
 		if (this.alreadyChosenPokemonIds.includes(randomPokemonId)) {
