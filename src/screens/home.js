@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { API } from '../api';
 
+import doubleMetaphone from 'talisman/phonetics/double-metaphone';
+
 export class Home extends Component {
 	constructor () {
 		super();
@@ -54,8 +56,7 @@ export class Home extends Component {
 
 	_handleRecognitionEnd () {
 		this.setState({ listening: false });
-
-		if (this.state.youSaid.toLocaleLowerCase() === this.state.pokemon.name.toLocaleLowerCase()) {
+		if (this._checkAnswer()) {
 			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
 			this._say(`It's ${ this.state.pokemon.name }! You answered ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
 		} else {
@@ -65,6 +66,23 @@ export class Home extends Component {
 			});
 		}
 	}
+
+	_checkAnswer () {
+		let phoneticAnswer = doubleMetaphone(this.state.pokemon.name);
+		let phoneticGuess = this.state.youSaid.split(' ').map(word => {
+			return doubleMetaphone(word);
+		});
+
+		for (let metaphonePair of phoneticGuess) {
+			if ((metaphonePair[0] === phoneticAnswer[0] || metaphonePair[0] === phoneticAnswer[1]) ||
+				(metaphonePair[1] === phoneticAnswer[0] || metaphonePair[1] === phoneticAnswer[1])) {
+				this.setState({youSaid: this.state.pokemon.name});
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	_resetGame () {
 		this.setState({
