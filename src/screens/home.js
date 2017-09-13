@@ -19,6 +19,7 @@ export class Home extends Component {
 			loading: false,
 			playing: false,
 			listening: false,
+			countdown: 5,
 			correctAnswers: 0,
 			youSaid: ''
 		};
@@ -46,12 +47,6 @@ export class Home extends Component {
 		this.recognition.addEventListener('start', this._handleRecognitionStart.bind(this));
 		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
-	}
-
-	_getRandomIntInclusive (min, max) {
-		min = Math.ceil(min);
-		max = Math.floor(max);
-		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
 	_handleRecognitionStart () {
@@ -112,7 +107,6 @@ export class Home extends Component {
 		this.utterance = new SpeechSynthesisUtterance(message);
 
 		if (callback) this.utterance.addEventListener('end', () =>  { callback(); });
-
 		window.speechSynthesis.speak(this.utterance);
 	}
 
@@ -142,6 +136,12 @@ export class Home extends Component {
 		}
 	}
 
+	_getRandomIntInclusive (min, max) {
+		min = Math.ceil(min);
+		max = Math.floor(max);
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
 	_getPokemonInfo (id, callback) {
 		this.setState({ loading: true });
 
@@ -154,8 +154,17 @@ export class Home extends Component {
 	}
 
 	_startGuessTimer () {
+		this.setState({ countdown: 5 });
 		this.recognition.start();
-		setTimeout(() => {this.recognition.stop()}, 5000);
+
+		const countdownInterval = setInterval(() => {
+			this.setState({ countdown: this.state.countdown - 1 });
+		}, 1000);
+
+		setTimeout(() => {
+			clearInterval(countdownInterval);
+			this.recognition.stop()
+		}, 5000);
 	}
 
 	_handleStartButtonClick () {
@@ -166,7 +175,7 @@ export class Home extends Component {
 
 	get _listeningIndicator () {
 		if (this.state.listening) {
-			return <p>Listening...</p>;
+			return <p>Listening... { this.state.countdown }</p>;
 		} else {
 			return null;
 		}
