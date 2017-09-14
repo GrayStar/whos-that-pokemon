@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import { API } from '../api';
-
 import doubleMetaphone from 'talisman/phonetics/double-metaphone';
+
+import { Button } from '../components/button/button';
+
+import './home.css';
 
 export class Home extends Component {
 	constructor () {
@@ -195,7 +198,7 @@ export class Home extends Component {
 				<h2>Who is that pokemon.</h2>
 				<p>Click the Button to play.</p>
 				<p>Guess all 151 without fail to achieve perfect victory. We will settle for nothing less.</p>
-				<button onClick={ this._handleStartButtonClick.bind(this) }>Start</button>
+				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Start'/>
 			</article>
 		);
 	}
@@ -224,7 +227,7 @@ export class Home extends Component {
 		return (
 			<article className="home">
 				<h2>Congratulation. You guessed all of the pokemon.</h2>
-				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
+				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Play Again'/>
 			</article>
 		);
 	}
@@ -234,7 +237,7 @@ export class Home extends Component {
 			<article className="home">
 				<h2>Game Over. You Lose. Loser.</h2>
 				<p>Current Streak: { this.state.correctAnswers }</p>
-				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
+				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Play Again'/>
 			</article>
 		);
 	}
