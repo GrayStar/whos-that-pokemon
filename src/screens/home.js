@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import { API } from '../api';
-
 import doubleMetaphone from 'talisman/phonetics/double-metaphone';
+
+import { Button } from '../components/button/button';
+
+import './home.css';
 
 export class Home extends Component {
 	constructor () {
@@ -19,6 +22,7 @@ export class Home extends Component {
 			loading: false,
 			playing: false,
 			listening: false,
+			countdown: 5,
 			correctAnswers: 0,
 			youSaid: ''
 		};
@@ -32,6 +36,10 @@ export class Home extends Component {
 	}
 
 	componentWillMount() {
+		this._registerSpeechRecognition();
+	}
+
+	_registerSpeechRecognition () {
 		const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 		this.recognition = new SpeechRecognition();
@@ -39,18 +47,12 @@ export class Home extends Component {
 		this.recognition.continuous = true;
 		this.recognition.interimResults = false;
 
-		this.recognition.addEventListener('start', this._handleRecognitionAudioStart.bind(this));
+		this.recognition.addEventListener('start', this._handleRecognitionStart.bind(this));
 		this.recognition.addEventListener('end', this._handleRecognitionEnd.bind(this));
 		this.recognition.addEventListener('result', this._handleRecognitionResult.bind(this));
 	}
 
-	_getRandomIntInclusive (min, max) {
-		min = Math.ceil(min);
-		max = Math.floor(max);
-		return Math.floor(Math.random() * (max - min + 1)) + min;
-	}
-
-	_handleRecognitionAudioStart () {
+	_handleRecognitionStart () {
 		this.setState({ listening: true });
 	}
 
@@ -58,13 +60,22 @@ export class Home extends Component {
 		this.setState({ listening: false });
 		if (this._checkAnswer()) {
 			this.setState({ correctAnswers: this.state.correctAnswers + 1 });
-			this._say(`It's ${ this.state.pokemon.name }! You answered ${ this.state.youSaid }. Correct.`, () => { this._chosePokemon() });
+			this._say(`It's ${ this.state.pokemon.name }! You said ${ this.state.youSaid }. Correct.`, () => {
+				if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) return this.setState({gameState: this.GAME_STATES.WIN});
+				this._startNewRound()
+			});
 		} else {
 			this.setState({gameState: this.GAME_STATES.LOSE});
-			this._say(`You answered: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`, () => {
-				this._resetGame();
-			});
+			this._say(`You said: ${ this.state.youSaid }. Wrong. The correct answer was ${ this.state.pokemon.name }. Game Over. You guessed ${ this.state.correctAnswers } pokémon correctly.`);
 		}
+	}
+
+	_handleRecognitionResult (e) {
+		this.recognition.stop();
+
+		let last = e.results.length - 1;
+		let text = e.results[last][0].transcript;
+		this.setState({ youSaid: text });
 	}
 
 	_checkAnswer () {
@@ -83,7 +94,6 @@ export class Home extends Component {
 		return false;
 	}
 
-
 	_resetGame () {
 		this.setState({
 			youSaid: '',
@@ -95,73 +105,80 @@ export class Home extends Component {
 		this.alreadyChosenPokemonIds = [];
 	}
 
-	_handleRecognitionResult (e) {
-		this.recognition.stop();
-
-		let last = e.results.length - 1;
-		let text = e.results[last][0].transcript;
-		this.setState({ youSaid: text });
-	}
-
-	_handleStartButtonClick () {
-		this._chosePokemon();
-		this.setState({ playing: true, gameState: this.GAME_STATES.PLAY});
-	}
-
 	_say (message, callback) {
 		this.utterance = null;
 		this.utterance = new SpeechSynthesisUtterance(message);
 
 		if (callback) this.utterance.addEventListener('end', () =>  { callback(); });
-
 		window.speechSynthesis.speak(this.utterance);
 	}
 
-	_chosePokemon () {
+	_startNewRound () {
 		this.setState({ youSaid: '' });
-		var randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
+		let pokemonId = this._choseNewPokemon();
 
-		if (this.alreadyChosenPokemonIds.length >= this.endingPokemon) {
-			this.setState({gameState: this.GAME_STATES.WIN});
-			return console.log('you got them all!');
-		}
-
-		if (this.alreadyChosenPokemonIds.includes(randomPokemonId)) {
-			return this._chosePokemon();
-		} else {
-			this.alreadyChosenPokemonIds.push(randomPokemonId);
-			this._getPokemonInfo(randomPokemonId);
-			return console.log(this.alreadyChosenPokemonIds);
-		}
-	}
-
-	_getPokemonInfo (id) {
-		this.setState({ loading: true });
-
-		API.getPokemon(id).then(res => {
+		this._getPokemonInfo(pokemonId, (res) => {
 			console.log(res);
 			this.setState({
 				pokemon: res,
 				loading: false
-			}, this._startRound);
-		}).catch(e => {
-			this.setState({ loading: false });
-			alert("Error: \n" + e);
+			}, () => {
+				this._say("Who's that pokémon?", () => { this._startGuessTimer() });
+			});
 		});
 	}
 
-	_startRound () {
-		this._say("Who's that pokémon?", () => { this._startGuessTimer() });
+	_choseNewPokemon () {
+		let randomPokemonId = this._getRandomIntInclusive(this.startingPokemon, this.endingPokemon);
+
+		if (this.alreadyChosenPokemonIds.includes(randomPokemonId)) {
+			return this._choseNewPokemon();
+		} else {
+			this.alreadyChosenPokemonIds.push(randomPokemonId);
+			return randomPokemonId;
+		}
+	}
+
+	_getRandomIntInclusive (min, max) {
+		min = Math.ceil(min);
+		max = Math.floor(max);
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
+	_getPokemonInfo (id, callback) {
+		this.setState({ loading: true });
+
+		API.getPokemon(id).then(response => {
+			if (callback) callback(response);
+		}).catch(e => {
+			this.setState({ loading: false });
+			alert("Sorry, we couldn't find any pokémon in the tall grass! \n" + e);
+		});
 	}
 
 	_startGuessTimer () {
+		this.setState({ countdown: 5 });
 		this.recognition.start();
-		setTimeout(() => {this.recognition.stop()}, 5000);
+
+		const countdownInterval = setInterval(() => {
+			this.setState({ countdown: this.state.countdown - 1 });
+		}, 1000);
+
+		setTimeout(() => {
+			clearInterval(countdownInterval);
+			this.recognition.stop()
+		}, 5000);
+	}
+
+	_handleStartButtonClick () {
+		this._resetGame();
+		this._startNewRound();
+		this.setState({ playing: true, gameState: this.GAME_STATES.PLAY});
 	}
 
 	get _listeningIndicator () {
 		if (this.state.listening) {
-			return <p>Listening...</p>;
+			return <p>Listening... { this.state.countdown }</p>;
 		} else {
 			return null;
 		}
@@ -177,12 +194,12 @@ export class Home extends Component {
 
 	get _gameStartView () {
 		return (
-			<div className="message-container">
+			<article className="home">
 				<h2>Who is that pokemon.</h2>
 				<p>Click the Button to play.</p>
 				<p>Guess all 151 without fail to achieve perfect victory. We will settle for nothing less.</p>
-				<button onClick={ this._handleStartButtonClick.bind(this) }>Start</button>
-			</div>
+				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Start'/>
+			</article>
 		);
 	}
 
@@ -208,19 +225,20 @@ export class Home extends Component {
 
 	get _gameWinView () {
 		return (
-			<div className="message-container">
+			<article className="home">
 				<h2>Congratulation. You guessed all of the pokemon.</h2>
-				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
-			</div>
+				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Play Again'/>
+			</article>
 		);
 	}
 
 	get _gameLossView () {
 		return (
-			<div className="message-container">
+			<article className="home">
 				<h2>Game Over. You Lose. Loser.</h2>
-				<button onClick={ this._handleStartButtonClick.bind(this) }>Play Again</button>
-			</div>
+				<p>Current Streak: { this.state.correctAnswers }</p>
+				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Play Again'/>
+			</article>
 		);
 	}
 
