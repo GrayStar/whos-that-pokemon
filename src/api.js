@@ -1,6 +1,6 @@
 export const API = {
 	getPokemon: (id) => {
-		return fetch(`http://pokeapi.co/api/v2/pokemon/${id}`, {
+		return fetch(`https://pokeapi.co/api/v2/pokemon/${id}`, {
 			method: 'GET',
 			headers: {
 				'Accept': 'application/json',
