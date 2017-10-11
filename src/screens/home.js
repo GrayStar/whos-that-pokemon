@@ -195,9 +195,13 @@ export class Home extends Component {
 	get _gameStartView () {
 		return (
 			<article className="home">
-				<h2>Who is that pokemon.</h2>
-				<p>Click the Button to play.</p>
-				<p>Guess all 151 without fail to achieve perfect victory. We will settle for nothing less.</p>
+				<img className="logo" src="/assets/International_Pokémon_logo.svg" alt="Pokemon"/>
+				<h1>NAME GAME</h1>
+				<ul>
+					<li>Speak the Pokemon's name when it appears</li>
+					<li>Guess all 151 without fail to achieve perfect victory</li>
+					<li>We will only accept perfection</li>
+				</ul>
 				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Start'/>
 			</article>
 		);
@@ -259,7 +263,7 @@ export class Home extends Component {
 
 	render () {
 		return(
-			<div>{ this._gameState }</div>
+			<div className="home-wrapper">{ this._gameState }</div>
 		);
 	};
 }

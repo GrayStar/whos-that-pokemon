@@ -1,3 +1,23 @@
-article.home {
+.home-wrapper {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    background: url("/assets/Pokename-bg.png") no-repeat top center;
+    background-size: cover;
 
+    article.home {
+        width: 500px;
+        height: 528px;
+        text-align: center;
+        margin: 50px auto;
+        background: #FFFFFF;
+        border-radius: 10px;
+        border: 1px solid black;
+        box-shadow: 0 2px 4px 0 rgba(0,0,0,0.23);
+
+        .logo {
+            margin: 32px auto 0;
+        }
+    }
 }
