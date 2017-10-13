@@ -196,35 +196,43 @@ export class Home extends Component {
 		return (
 			<article className="home">
 				<img className="logo" src="/assets/International_Pokémon_logo.svg" alt="Pokemon"/>
-				<h1>NAME GAME</h1>
-				<ul>
-					<li>Speak the Pokemon's name when it appears</li>
-					<li>Guess all 151 without fail to achieve perfect victory</li>
-					<li>We will only accept perfection</li>
+				<div className="title">NAME GAME</div>
+				<ul className="list">
+					<li><div>Speak the Pokemon's name when it appears</div></li>
+					<li><div>Guess all 151 without fail to achieve perfect victory</div></li>
+					<li><div>We will only accept perfection</div></li>
 				</ul>
-				<Button onClick={ this._handleStartButtonClick.bind(this) } title='Start'/>
+				<div className="button-wrapper"><Button onClick={ this._handleStartButtonClick.bind(this) } title='Start'/></div>
 			</article>
 		);
 	}
 
-	get _gameView () {
+	get _pokemon () {
 		if (this.state.loading) {
-			return (
-				<article className="home">
-					<p>Searching tall grass for pokémon...</p>
-					<p>Current Streak: { this.state.correctAnswers }</p>
-				</article>
-			);
+			return (<p>Searching tall grass for pokémon...</p>)
 		} else {
 			return (
-				<article className="home">
+				<div>
 					{ this._pokemonSprite }
 					{ this._listeningIndicator }
-					<p>You Said: { this.state.youSaid }</p>
-					<p>Current Streak: { this.state.correctAnswers }</p>
-				</article>
-			);
+				</div>
+			)
 		}
+	}
+
+	get _gameView () {
+		return (
+			<article className="home">
+				<div className="title ">NAME THIS<br/>POKEMON</div>
+				{ this._pokemon }
+				<p>You Said:</p>
+				<p>{ this.state.youSaid }</p>
+				<p className="answer-tracker">
+					<span className="correct-answers">{ this.state.correctAnswers }</span>/
+					<span className="total-pokemon">151</span>
+				</p>
+			</article>
+		);
 	}
 
 	get _gameWinView () {
